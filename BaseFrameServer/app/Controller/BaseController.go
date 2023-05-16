@@ -2,6 +2,7 @@
 package Controller
 
 import (
+	"BaseFrameServer/app/Common/Utils"
 	"BaseFrameServer/app/Exception"
 	"github.com/gin-gonic/gin"
 	"github.com/syyongx/php2go"
@@ -79,4 +80,15 @@ func (receiver BaseController) JsonSuccess(message string, data map[string]inter
 // @return string
 func (receiver BaseController) JsonError(message string, data map[string]interface{}, code int) string {
 	return HelperFunction.JsonError(message, data, code)
+}
+
+func (receiver BaseController) SetControllerError(c *gin.Context, r interface{}) {
+
+	Utils.LoggerInfo("控制器出现异常", "controller:error", map[string]interface{}{
+		"Message": r,
+	})
+
+	c.String(200, receiver.JsonError("controller:异常", map[string]interface{}{
+		"Message": r,
+	}, 500))
 }

@@ -18,6 +18,7 @@ type RouteModel struct {
 	QueueInfo      string `json:"queue_info"`
 	OpenStatus     int    `json:"open_status"`
 	RouteLevelType string `json:"route_level_type"`
+	ForceTableName string `json:"force_table_name"`
 }
 
 func (m RouteModel) TableName() string {

@@ -1,6 +1,8 @@
 // Package Service /*
 package Service
 
+import "github.com/tongmingxuan/tmx-server/tmxServer"
+
 type BaseService struct {
 }
 
@@ -36,4 +38,8 @@ func (service BaseService) ServiceError(message string, data interface{}, code i
 		Message: message,
 		Data:    data,
 	}
+}
+
+func (service BaseService) GetGormConnection() *tmxServer.Dao {
+	return tmxServer.CommonGetDao("")
 }
