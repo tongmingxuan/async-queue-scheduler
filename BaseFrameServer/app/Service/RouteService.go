@@ -11,6 +11,7 @@ import (
 	"github.com/syyongx/php2go"
 	"github.com/tongmingxuan/tmx-server/tmxServer"
 	"gorm.io/gorm"
+	"time"
 )
 
 type RouteService struct {
@@ -99,6 +100,12 @@ func (service RouteService) CreateRoute(param map[string]interface{}) Result {
 	//获取 routeDao
 	routeDao := Dao.GetRouteDao(conn)
 
+	//获取 undoDao
+	undoDao := Dao.GetRouteUndoDao(conn)
+
+	//获取 messageDao
+	messageDao := Dao.GetMessageDao(conn)
+
 	//验证数据 且model不开启事务
 	checkResult := service.checkParam(param, routeDao)
 
@@ -124,9 +131,11 @@ func (service RouteService) CreateRoute(param map[string]interface{}) Result {
 	param["main_route_id"] = mainRouteId
 
 	//开启事务
-	txErr := routeDao.GormDb.Transaction(func(tx *gorm.DB) error {
+	txErr := conn.GormDb.Transaction(func(tx *gorm.DB) error {
 		//更换gorm对象
 		routeDao.GormDb = tx
+
+		undoDao.GormDb = tx
 
 		routeCreate := Model.RouteModel{
 			RouteName: param["route_name"].(string),
@@ -159,15 +168,32 @@ func (service RouteService) CreateRoute(param map[string]interface{}) Result {
 		}
 
 		if mainRouteId == 0 && upRouteId == 0 {
+			tableName := "sync_" + routeCreate.RouteName + "_" + time.Now().Format("2006_01_02")
+
+			messageDao.CreateMessageTable(tableName)
+
 			row := routeDao.UpdateInfoByWhere(map[string]interface{}{
 				"id": insertId,
 			}, map[string]interface{}{
-				"main_route_id": insertId,
+				"main_route_id":    insertId,
+				"force_table_name": tableName,
 			})
 
 			if row.RowsAffected < 1 {
 				return errors.New("更新数据异常:响应行数小于1")
 			}
+
+			encode, err := php2go.JSONEncode(routeCreate)
+
+			if err != nil {
+				return errors.New("创建undo异常:" + err.Error())
+			}
+
+			undoDao.Create(map[string]interface{}{
+				"route_id":         insertId,
+				"route_list_info":  string(encode),
+				"force_table_name": tableName,
+			})
 		}
 
 		return nil
