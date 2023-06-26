@@ -59,6 +59,18 @@ func (receiver BaseController) Params(c *gin.Context) map[string]interface{} {
 		params[field] = value
 	}
 
+	rawMap := make(map[string]interface{})
+	raw, _ := c.GetRawData()
+	php2go.JSONDecode(raw, &rawMap)
+
+	if len(rawMap) > 0 {
+		for k, v := range rawMap {
+			func(k string, v interface{}) {
+				params[k] = v
+			}(k, v)
+		}
+	}
+
 	return params
 }
 

@@ -13,8 +13,8 @@ type AdminController struct {
 func (controller AdminController) Login(c *gin.Context) {
 
 	param := controller.FilterData(controller.Params(c), map[string]string{
-		"admin_name":     "admin_name:不存在",
-		"admin_password": "admin_password:不存在",
+		"username": "username:不存在",
+		"password": "password:不存在",
 	})
 
 	defer func() {
@@ -24,7 +24,7 @@ func (controller AdminController) Login(c *gin.Context) {
 		}
 	}()
 
-	result := AdminService.AdminService{}.Login(param["admin_name"].(string), param["admin_password"].(string))
+	result := AdminService.AdminService{}.Login(param["username"].(string), param["password"].(string))
 
 	if result.Code == 200 {
 		c.String(200, controller.JsonSuccess(result.Message, map[string]interface{}{

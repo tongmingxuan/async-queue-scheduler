@@ -15,7 +15,7 @@ type AdminModel struct {
 }
 
 func (m AdminModel) TableName() string {
-	return "admin"
+	return "sync_admin"
 }
 
 func (m AdminModel) GetPollName() string {
